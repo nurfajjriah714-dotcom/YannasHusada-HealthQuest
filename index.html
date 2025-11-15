@@ -1,20 +1,17 @@
-<main class="game-container">
-    <h2>Data Siswa</h2>
-    <div id="student-form">
-        <label for="namaSiswa">Nama Siswa:</label>
-        <input type="text" id="namaSiswa" required><br><br>
+<section id="tutorial">
+    <h2>📝 Petunjuk Pengerjaan Soal</h2>
+    <ul>
+        <li>Masukkan **NIS** dan **Nama Lengkap** Anda dengan benar.</li>
+        <li>Terdapat **10** soal pilihan ganda yang harus dijawab.</li>
+        <li>Pilih satu jawaban yang paling benar.</li>
+        <li>Skor akan dihitung secara otomatis setelah selesai.</li>
+    </ul>
+    </section>
 
-        <label for="kelas">Kelas:</label>
-        <input type="text" id="kelas" required><br><br>
-
-        <button id="start-game-button">Mulai Game</button>
-    </div>
-
-    <div id="game-content" style="display: none;">
-        <div id="score-board">Skor: 0</div>
-        <div id="game-area">
-            </div>
-        <button id="reset-button" style="display: none;">Mulai Ulang</button>
-        <div id="message"></div>
-    </div>
-</main>
+    <div id="admin-panel" style="margin-top: 50px;">
+    <h3>Area Admin</h3>
+    <input type="password" id="admin-pass" placeholder="Password Admin">
+    <button onclick="lihatDataAdmin(document.getElementById('admin-pass').value)">Lihat Hasil</button>
+    <div id="hasil-table">
+        </div>
+</div>
