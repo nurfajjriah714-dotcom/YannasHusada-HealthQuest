@@ -1,7 +1,7 @@
 // ... (kode game yang sudah ada) ...
 
 // **Tambahkan di sini:**
-const WEB_APP_URL = 'GANTI_DENGAN_URL_WEB_APP_ANDA'; // PASTE URL dari Apps Script di sini!
+const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyKvsPux8V1ue-yoNCcm4byRO6dU5k7Fmt9cYs28fWSgUTs7DVztIiK3qqjAUEnrdY7/exec'; // PASTE URL dari Apps Script di sini!
 
 const studentFormDiv = document.getElementById('student-form');
 const gameContentDiv = document.getElementById('game-content');
