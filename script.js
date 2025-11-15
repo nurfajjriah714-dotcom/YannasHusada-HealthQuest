@@ -1,88 +1,101 @@
-// ... (kode game yang sudah ada) ...
+// Ganti dengan URL DEPLOY Google Apps Script Anda (WAJIB DEPLOY SEBAGAI WEB APP!)
+const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw96Im4uEHCvtCsJbOnMi6A54bOe6GsfGJ-qRdphhOn3PQxvJ-CdpOVgOylvCVJmOyJ/exec'; 
+let bankSoal = [];
+let jawabanSiswa = [];
+let nisSiswa = '';
+let namaSiswa = '';
+let kelasSiswa = '';
+let skor = 0;
 
-// **Tambahkan di sini:**
-const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycbyKvsPux8V1ue-yoNCcm4byRO6dU5k7Fmt9cYs28fWSgUTs7DVztIiK3qqjAUEnrdY7/exec'; // PASTE URL dari Apps Script di sini!
+// --- Fungsi Utama ---
 
-const studentFormDiv = document.getElementById('student-form');
-const gameContentDiv = document.getElementById('game-content');
-const startGameButton = document.getElementById('start-game-button');
-const namaSiswaInput = document.getElementById('namaSiswa');
-const kelasInput = document.getElementById('kelas');
+// 1. Memulai Game/Sistem Soal
+async function fetchSoal() {
+    try {
+        const response = await fetch(APPS_SCRIPT_URL + '?action=getSoal', {
+            method: 'GET', // Menggunakan GET untuk mengambil data
+        });
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            bankSoal = result.data;
+            tampilkanHalamanSoal(); // Fungsi untuk menampilkan soal pertama
+        } else {
+            alert('Gagal mengambil soal: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error fetching soal:', error);
+        alert('Terjadi kesalahan koneksi.');
+    }
+}
 
-let studentData = {}; // Objek untuk menyimpan data siswa
-// ... (lanjutkan kode game yang sudah ada) ...
+// 2. Mengirim Hasil ke Backend
+async function kirimHasil(skorAkhir) {
+    const dataKirim = {
+        action: 'saveHasil',
+        data: JSON.stringify({
+            nis: nisSiswa,
+            nama: namaSiswa,
+            kelas: kelasSiswa,
+            skor: skorAkhir,
+            totalSoal: bankSoal.length,
+            jawabanSiswa: jawabanSiswa
+        })
+    };
 
-// Fungsi untuk memulai game setelah data siswa diinput
-function startGame() {
-    const nama = namaSiswaInput.value.trim();
-    const kelas = kelasInput.value.trim();
+    try {
+        const response = await fetch(APPS_SCRIPT_URL, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: new URLSearchParams(dataKirim).toString(),
+        });
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            alert(`Pengerjaan selesai! Skor Anda: ${skorAkhir}. Hasil berhasil dicatat.`);
+            // Arahkan ke halaman selesai atau menu utama
+        } else {
+            alert('Gagal mencatat hasil: ' + result.message);
+        }
+    } catch (error) {
+        console.error('Error saving hasil:', error);
+        alert('Terjadi kesalahan saat menyimpan hasil.');
+    }
+}
 
-    if (nama === "" || kelas === "") {
-        alert("Nama Siswa dan Kelas wajib diisi untuk memulai!");
+// --- Logika Game (Contoh) ---
+function prosesJawaban(soalId, pilihan) {
+    // Di sini seharusnya ada logika untuk membandingkan jawaban siswa
+    // dengan kunci jawaban (yang SCRIPT JS tidak miliki)
+    // Untuk game yang benar-benar aman, penghitungan skor harusnya di Apps Script (Backend)
+
+    // Untuk contoh sederhana: kita hanya mencatat jawaban
+    jawabanSiswa.push({ soalId: soalId, jawaban: pilihan });
+
+    // Pindah ke soal berikutnya atau panggil kirimHasil() jika sudah selesai
+}
+
+// --- Fungsi Admin (Contoh) ---
+async function lihatDataAdmin(password) {
+    if (password !== 'yannashusada2025') { // Ganti dengan password yang lebih kuat
+        alert('Password Admin salah!');
         return;
     }
 
-    studentData = {
-        namaSiswa: nama,
-        kelas: kelas,
-        modul: "PharmaMatch - Farmasi Klinis" // Tentukan nama modul
-    };
-
-    studentFormDiv.style.display = 'none';
-    gameContentDiv.style.display = 'block';
-    
-    initGame(); // Panggil inisialisasi game yang sudah ada
-}
-
-startGameButton.addEventListener('click', startGame);
-
-// ... (lanjutkan kode game yang sudah ada) ...
-
-// ... di dalam fungsi checkMatch()
-
-if (matchesFound === pharmaData.length) {
-    // Game Selesai
-    messageElement.textContent = `🎉 Selamat! Anda menyelesaikan tantangan dengan skor ${score}. Data Anda sedang dikirim...`;
-    resetButton.style.display = 'block';
-    
-    // **PANGGIL FUNGSI KIRIM DATA**
-    sendScoreToSpreadsheet(studentData.namaSiswa, studentData.kelas, studentData.modul, score);
-}
-
-// ...
-
-/**
- * Mengirim data nilai siswa ke Google Apps Script (WebHook)
- * @param {string} nama - Nama Siswa
- * @param {string} kelas - Kelas Siswa
- * @param {string} modul - Nama Modul Game
- * @param {number} finalScore - Skor Akhir Game
- */
-function sendScoreToSpreadsheet(nama, kelas, modul, finalScore) {
-    const dataToSend = {
-        namaSiswa: nama,
-        kelas: kelas,
-        modul: modul,
-        skorAkhir: finalScore
-    };
-
-    fetch(WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors', // Penting untuk Apps Script sebagai WebHook sederhana
-        cache: 'no-cache',
-        headers: {
-            'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(dataToSend)
-    })
-    .then(response => {
-        // Karena mode 'no-cors', response mungkin tidak bisa dibaca, 
-        // tapi kita bisa asumsikan pengiriman berhasil jika tidak ada error jaringan
-        console.log("Pengiriman data ke spreadsheet berhasil (mode no-cors)");
-        messageElement.textContent = `🎉 Selesai! Skor ${finalScore} tercatat!`;
-    })
-    .catch(error => {
-        console.error('Error saat mengirim data:', error);
-        messageElement.textContent = `⚠️ Error! Skor ${finalScore} tidak tercatat. Coba lagi atau hubungi admin.`;
-    });
+    try {
+        const response = await fetch(APPS_SCRIPT_URL + '?action=getHasilAdmin', { method: 'GET' });
+        const result = await response.json();
+        
+        if (result.status === 'success') {
+            // Logika untuk menampilkan data hasil pengerjaan (result.data) ke tabel di halaman admin
+            console.log('Data Hasil Pengerjaan:', result.data);
+            alert('Data Admin berhasil diambil. Lihat konsol untuk data mentah.');
+        } else {
+            alert('Gagal mengambil data admin: ' + result.message);
+        }
+    } catch (error) {
+        alert('Terjadi kesalahan koneksi.');
+    }
 }
