@@ -3,252 +3,27 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Bank Soal SMKS Kesehatan Yannas Husada</title>
-    <style>
-        body { font-family: 'Arial', sans-serif; background-color: #f4f7f6; color: #333; margin: 0; padding: 20px; }
-        .container { max-width: 800px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1, h2 { color: #007bff; text-align: center; }
-        .card { border: 1px solid #ddd; padding: 20px; margin-bottom: 20px; border-radius: 5px; }
-        input[type="text"], input[type="password"], select { width: 100%; padding: 10px; margin: 8px 0 15px 0; display: inline-block; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background-color: #28a745; color: white; padding: 10px 15px; border: none; border-radius: 4px; cursor: pointer; font-size: 16px; margin-top: 10px; }
-        button:hover { background-color: #218838; }
-        .pilihan { display: flex; flex-direction: column; margin-top: 10px; }
-        .pilihan label { margin-bottom: 10px; padding: 10px; border: 1px solid #eee; border-radius: 4px; cursor: pointer; transition: background-color 0.3s; }
-        .pilihan label:hover { background-color: #e9ecef; }
-        .pilihan input[type="radio"] { margin-right: 10px; }
-        #timer { font-size: 1.2em; font-weight: bold; color: #dc3545; text-align: center; margin-bottom: 20px; }
-    </style>
+    <title>PharmaMatch - Game Farmasi Yannas Husada</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <header>
+        <h1>💊 PharmaMatch Challenge</h1>
+        <p>Pasangkan Obat Generik dengan Nama Dagang yang tepat.</p>
+    </header>
 
-<div class="container">
-    <h1>Bank Soal SMKS Kesehatan Yannas Husada</h1>
-
-    <div id="login-area">
-        <h2>Masukkan Data Siswa</h2>
-        <input type="text" id="nis-siswa" placeholder="NIS Siswa (Wajib)" required>
-        <input type="text" id="nama-siswa" placeholder="Nama Lengkap (Wajib)" required>
-        <input type="text" id="kelas-siswa" placeholder="Kelas (Contoh: XI A)" required>
-        <button onclick="startTutorial()">Lanjutkan ke Petunjuk</button>
-    </div>
-
-    <div id="tutorial-area" style="display:none;">
-        <h2>📝 Petunjuk Pengerjaan Soal</h2>
-        <div class="card">
-            <ul>
-                <li>Pastikan data Anda **(NIS, Nama, Kelas)** sudah benar.</li>
-                <li>Terdapat total **<span id="total-soal-info">...</span>** soal pilihan ganda.</li>
-                <li>Pilih satu jawaban yang paling benar. Jawaban tidak bisa diubah setelah dipilih.</li>
-                <li>Setelah semua soal terjawab, klik **Selesai** untuk melihat hasil dan mengirim data.</li>
-            </ul>
-        </div>
-        <button onclick="startKuis()">Mulai Pengerjaan Soal</button>
-    </div>
-
-    <div id="kuis-area" style="display:none;">
-        <h2>Pengerjaan Soal</h2>
-        <div id="timer">Waktu: Belum Dimulai</div>
-        <div id="soal-container">
+    <main class="game-container">
+        <div id="score-board">Skor: 0</div>
+        <div id="game-area">
             </div>
-        <button id="next-button" onclick="nextSoal()">Soal Selanjutnya</button>
-        <button id="finish-button" onclick="finishKuis()" style="display:none; background-color: #dc3545;">Selesai</button>
-    </div>
+        <button id="reset-button" style="display: none;">Mulai Ulang</button>
+        <div id="message"></div>
+    </main>
 
-    <div id="hasil-area" style="display:none;">
-        <h2>🎉 Hasil Pengerjaan Anda</h2>
-        <div class="card">
-            <p><strong>Nama:</strong> <span id="nama-hasil"></span></p>
-            <p><strong>NIS:</strong> <span id="nis-hasil"></span></p>
-            <p><strong>Kelas:</strong> <span id="kelas-hasil"></span></p>
-            <hr>
-            <h3>Skor Anda: <span id="skor-akhir" style="color:#007bff;"></span></h3>
-            <p>Dari total <span id="total-soal-akhir"></span> soal.</p>
-            <p style="font-style: italic; color: green;">Hasil Anda sudah dicatat oleh sistem.</p>
-        </div>
-    </div>
+    <footer>
+        <p>&copy; SMK Kesehatan Yannas Husada - Farmasi Klinis & Komunitas</p>
+    </footer>
 
-</div>
-
-<script>
-    // GANTI DENGAN URL DEPLOY GOOGLE APPS SCRIPT ANDA!!!
-    const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw53n3t9nOdOPqhDPBRuGRqEDRSFEC2mPI9xNkItfPLtTm6aSlnLcV2OmfwnfnRnd5B/exec'; 
-
-    let bankSoal = [];
-    let jawabanSiswa = {}; // Menggunakan objek untuk menyimpan jawaban berdasarkan ID
-    let currentSoalIndex = 0;
-    
-    // Data Siswa Global
-    let dataSiswa = { nis: '', nama: '', kelas: '' };
-    
-    // --- Kontrol Halaman ---
-
-    function showArea(areaId) {
-        document.getElementById('login-area').style.display = 'none';
-        document.getElementById('tutorial-area').style.display = 'none';
-        document.getElementById('kuis-area').style.display = 'none';
-        document.getElementById('hasil-area').style.display = 'none';
-        document.getElementById(areaId).style.display = 'block';
-    }
-
-    // --- Langkah 1: Login dan Persiapan ---
-
-    async function startTutorial() {
-        dataSiswa.nis = document.getElementById('nis-siswa').value.trim();
-        dataSiswa.nama = document.getElementById('nama-siswa').value.trim();
-        dataSiswa.kelas = document.getElementById('kelas-siswa').value.trim();
-
-        if (!dataSiswa.nis || !dataSiswa.nama || !dataSiswa.kelas) {
-            alert('Semua data siswa (NIS, Nama, Kelas) wajib diisi.');
-            return;
-        }
-        
-        // Ambil data soal terlebih dahulu
-        await fetchSoal(); 
-
-        if (bankSoal.length > 0) {
-             document.getElementById('total-soal-info').textContent = bankSoal.length;
-             showArea('tutorial-area');
-        } else {
-             alert("Gagal memuat soal atau bank soal kosong.");
-             showArea('login-area');
-        }
-    }
-    
-    // Mengambil soal dari Apps Script
-    async function fetchSoal() {
-        try {
-            const response = await fetch(APPS_SCRIPT_URL + '?action=getSoal', { method: 'POST' });
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                bankSoal = result.data;
-            } else {
-                alert('Gagal mengambil soal: ' + result.message);
-            }
-        } catch (error) {
-            console.error('Error fetching soal:', error);
-            alert('Terjadi kesalahan koneksi saat mengambil soal.');
-        }
-    }
-
-
-    // --- Langkah 2: Memulai Kuis ---
-
-    function startKuis() {
-        currentSoalIndex = 0;
-        jawabanSiswa = {};
-        showArea('kuis-area');
-        tampilkanSoal(currentSoalIndex);
-        // Anda bisa tambahkan timer di sini, misalnya 60 menit
-    }
-    
-    // Menampilkan soal ke halaman
-    function tampilkanSoal(index) {
-        if (index >= bankSoal.length) return;
-
-        const soal = bankSoal[index];
-        const container = document.getElementById('soal-container');
-        
-        container.innerHTML = `
-            <div class="card">
-                <p><strong>Soal ${index + 1} / ${bankSoal.length}</strong></p>
-                <p>${soal.pertanyaan}</p>
-                <div class="pilihan">
-                    <label><input type="radio" name="soal_${soal.id}" value="A" onclick="simpanJawaban('${soal.id}', 'A')"> A. ${soal.pilihanA}</label>
-                    <label><input type="radio" name="soal_${soal.id}" value="B" onclick="simpanJawaban('${soal.id}', 'B')"> B. ${soal.pilihanB}</label>
-                    <label><input type="radio" name="soal_${soal.id}" value="C" onclick="simpanJawaban('${soal.id}', 'C')"> C. ${soal.pilihanC}</label>
-                    <label><input type="radio" name="soal_${soal.id}" value="D" onclick="simpanJawaban('${soal.id}', 'D')"> D. ${soal.pilihanD}</label>
-                </div>
-            </div>
-        `;
-        
-        // Atur status tombol
-        document.getElementById('next-button').style.display = (index < bankSoal.length - 1) ? 'block' : 'none';
-        document.getElementById('finish-button').style.display = (index === bankSoal.length - 1) ? 'block' : 'none';
-
-        // Kembalikan pilihan jika siswa sudah pernah menjawab
-        if (jawabanSiswa[soal.id]) {
-            document.querySelector(`input[name="soal_${soal.id}"][value="${jawabanSiswa[soal.id]}"]`).checked = true;
-        }
-    }
-    
-    // Menyimpan jawaban sementara siswa
-    function simpanJawaban(soalId, pilihan) {
-        jawabanSiswa[soalId] = pilihan;
-    }
-    
-    // Pindah ke soal berikutnya
-    function nextSoal() {
-        if (currentSoalIndex < bankSoal.length - 1) {
-            currentSoalIndex++;
-            tampilkanSoal(currentSoalIndex);
-        }
-    }
-
-    // --- Langkah 3: Selesai dan Kirim Hasil ---
-    
-    async function finishKuis() {
-        if (!confirm("Apakah Anda yakin ingin menyelesaikan kuis? Jawaban tidak dapat diubah lagi.")) {
-            return;
-        }
-        
-        // Konversi objek jawaban ke array untuk dikirim ke backend
-        const jawabanArray = Object.keys(jawabanSiswa).map(id => ({
-            id: id,
-            jawaban: jawabanSiswa[id]
-        }));
-        
-        // Cek apakah semua soal sudah dijawab (opsional)
-        if (jawabanArray.length < bankSoal.length) {
-             const konfirmasi = confirm(`Anda baru menjawab ${jawabanArray.length} dari ${bankSoal.length} soal. Tetap selesaikan?`);
-             if (!konfirmasi) return;
-        }
-
-        document.getElementById('finish-button').disabled = true;
-        document.getElementById('finish-button').textContent = 'Mengirim Hasil...';
-
-        try {
-            const response = await fetch(APPS_SCRIPT_URL, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                },
-                body: new URLSearchParams({
-                    action: 'cekJawabanDanHitungSkor',
-                    jawaban: JSON.stringify(jawabanArray),
-                    siswa: JSON.stringify(dataSiswa)
-                }).toString(),
-            });
-            const result = await response.json();
-            
-            if (result.status === 'success') {
-                displayHasil(result.skor, result.totalSoal);
-            } else {
-                alert('Gagal mencatat hasil: ' + result.message);
-                document.getElementById('finish-button').textContent = 'Terjadi Kesalahan';
-            }
-        } catch (error) {
-            console.error('Error saving hasil:', error);
-            alert('Terjadi kesalahan koneksi saat menyimpan hasil. Silakan coba lagi.');
-        }
-    }
-    
-    // Menampilkan halaman hasil
-    function displayHasil(skor, total) {
-        document.getElementById('nama-hasil').textContent = dataSiswa.nama;
-        document.getElementById('nis-hasil').textContent = dataSiswa.nis;
-        document.getElementById('kelas-hasil').textContent = dataSiswa.kelas;
-        document.getElementById('skor-akhir').textContent = skor;
-        document.getElementById('total-soal-akhir').textContent = total;
-        showArea('hasil-area');
-    }
-
-    // Tampilkan halaman awal saat dokumen dimuat
-    document.addEventListener('DOMContentLoaded', () => {
-        showArea('login-area');
-    });
-
-</script>
-
+    <script src="script.js"></script>
 </body>
 </html>
